@@ -106,9 +106,8 @@ class Dog extends Animal {
     breed: string;
 }
 
-// Error, the number index return value should be sub type of string index return value
 interface NotOkay {
-    [x: number]: Animal;
+    [x: number]: Animal;// Error, the number index return value should be sub type of string index return value
     [x: string]: Dog;
 }
 
@@ -142,4 +141,129 @@ class Clock implements ClockInterface {
     constructor(h: number, m: number) {
 
     }
+}
+
+interface ClockConstructor {
+    new(hour: number, minute: number);
+}
+
+class ClockA implements ClockConstructor { //Error, constructor is in static, they are not in interface checking
+    currentTime: Date;
+    constructor(h: number, m: number) { }
+}
+
+/*
+ * 
+ * Correct way to use interface to define constructor and instance method
+ */
+
+// used for constructor function
+interface ClockConstructor {
+    new(hour: number, minute: number): NewClockInterface;
+}
+
+//used for instance method
+interface NewClockInterface {
+    tick(): any
+}
+
+//constructor function
+function createClock(ctor: ClockConstructor, hour: number, minute: number): NewClockInterface {
+    return new ctor(hour, minute);
+}
+
+class DigitalClock implements NewClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("beep beep");
+    }
+}
+
+class AnalogClock implements NewClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("tick tock");
+    }
+}
+
+let digital = createClock(DigitalClock, 12, 17);
+let analog = createClock(AnalogClock, 7, 32);
+
+
+/*
+ * extends interface 
+ * 
+ */
+
+interface Shape {
+    color: string
+}
+
+interface Squre extends Shape {
+    sideLength: number
+}
+
+let squre = <Squre>{}
+squre.color = "blue"
+squre.sideLength = 10
+
+// one interface could extend some interfaces and create combined interface
+interface PenStroke {
+    penWidth: number;
+}
+
+interface SuperSqure extends Shape, PenStroke {
+    sideLendth: number
+}
+const superSqure = <SuperSqure>{}
+superSqure.color = 'Red'
+superSqure.penWidth = 10
+superSqure.sideLendth = 20
+
+
+//mixed type
+
+interface Counter {
+    (start: number): string
+    interval: number
+    reset(): void
+}
+
+const getCounter = (): Counter => {
+    const counter = <Counter>((start: number) => { })
+    counter.interval = 123
+    counter.reset = () => { }
+    return counter
+}
+
+const counterRes = getCounter()
+counterRes(10)
+counterRes.reset()
+counterRes.interval = 5.0
+
+/**
+ * interface extends class
+ */
+
+// when interface extends a class, interface will inheritance the member without implement
+class Control {
+    private state: any;
+}
+
+interface SelectableControl extends Control {
+    select(): void;
+}
+
+class Button extends Control implements SelectableControl {
+    select() { }
+}
+
+class TextBox extends Control {
+    select() { }
+}
+
+//Error, only child of Control could implement SelectableControl
+class Images implements SelectableControl { //Error, missing state property
+    select() { }
+
 }
